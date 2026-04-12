@@ -30,13 +30,15 @@ export async function persistGoogleAccount(
     },
   });
 
-  const accessToken = input.account.access_token;
+  const accessToken = input.account.access_token ?? null;
+  const refreshToken = input.account.refresh_token;
 
-  if (!accessToken) {
-    throw new Error("Google account persistence requires an access token.");
+  if (!accessToken && !refreshToken) {
+    throw new Error(
+      "Google account persistence requires at least one OAuth token.",
+    );
   }
 
-  const refreshToken = input.account.refresh_token;
   const expiresAt =
     typeof input.account.expires_at === "number"
       ? new Date(input.account.expires_at * 1000)
@@ -52,7 +54,7 @@ export async function persistGoogleAccount(
     update: {
       userId: user.id,
       email: input.email,
-      accessTokenEnc: encryptSecret(accessToken),
+      accessTokenEnc: encryptSecret(accessToken ?? ""),
       refreshTokenEnc: refreshToken ? encryptSecret(refreshToken) : null,
       scope: input.account.scope ?? null,
       expiresAt,
@@ -62,7 +64,7 @@ export async function persistGoogleAccount(
       provider: "GOOGLE",
       providerAccountId: input.account.providerAccountId,
       email: input.email,
-      accessTokenEnc: encryptSecret(accessToken),
+      accessTokenEnc: encryptSecret(accessToken ?? ""),
       refreshTokenEnc: refreshToken ? encryptSecret(refreshToken) : null,
       scope: input.account.scope ?? null,
       expiresAt,

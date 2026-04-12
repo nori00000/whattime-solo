@@ -31,7 +31,7 @@ function createOAuthClient(accessToken: string, refreshToken?: string | null) {
   );
 
   client.setCredentials({
-    access_token: accessToken,
+    access_token: accessToken || undefined,
     refresh_token: refreshToken ?? undefined,
   });
 

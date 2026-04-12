@@ -1,4 +1,6 @@
 import { summarizeEnvReadiness } from "@/lib/config/env";
+import { getPrismaClient } from "@/lib/db/prisma";
+import { encryptSecret } from "@/lib/security/encryption";
 
 export function getSetupReadiness() {
   const env = summarizeEnvReadiness();
@@ -18,4 +20,36 @@ export function getSetupReadiness() {
       env.find((item) => item.key === "RESEND_API_KEY")?.configured &&
       env.find((item) => item.key === "MAIL_FROM")?.configured,
   };
+}
+
+export async function getSetupDiagnostics() {
+  const prisma = getPrismaClient();
+
+  try {
+    await prisma.user.count();
+    await prisma.calendarAccount.count();
+    await prisma.connectedCalendar.count();
+
+    const encrypted = encryptSecret("diag");
+
+    return {
+      databaseQueryOk: true,
+      userTableOk: true,
+      calendarAccountTableOk: true,
+      connectedCalendarTableOk: true,
+      encryptionOk: Boolean(encrypted),
+    };
+  } catch (error) {
+    return {
+      databaseQueryOk: false,
+      userTableOk: false,
+      calendarAccountTableOk: false,
+      connectedCalendarTableOk: false,
+      encryptionOk: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Unknown setup diagnostics failure.",
+    };
+  }
 }
