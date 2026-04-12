@@ -4,6 +4,14 @@ import GoogleProvider from "next-auth/providers/google";
 import { ACTOR_ROLES } from "@/server/authz";
 import { persistGoogleAccount } from "@/server/services/auth-persistence-service";
 
+function getGoogleProfileField(
+  profile: Record<string, unknown> | undefined,
+  key: string,
+): string | undefined {
+  const value = profile?.[key];
+  return typeof value === "string" && value.length > 0 ? value : undefined;
+}
+
 export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
@@ -33,18 +41,30 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, account, profile }) {
       if (account) {
-        if (!token.email) {
+        const profileRecord =
+          profile && typeof profile === "object"
+            ? (profile as Record<string, unknown>)
+            : undefined;
+        const email =
+          token.email ?? getGoogleProfileField(profileRecord, "email");
+
+        if (!email) {
           throw new Error("Google sign-in requires an email address.");
         }
 
         const appUser = await persistGoogleAccount({
-          email: token.email,
-          name: token.name,
-          image: token.picture,
+          email,
+          name:
+            token.name ??
+            getGoogleProfileField(profileRecord, "name") ??
+            getGoogleProfileField(profileRecord, "given_name"),
+          image:
+            token.picture ?? getGoogleProfileField(profileRecord, "picture"),
           profile,
           account,
         });
 
+        token.email = email;
         token.role = ACTOR_ROLES.HOST;
         token.provider = account.provider;
         token.appUserId = appUser.id;

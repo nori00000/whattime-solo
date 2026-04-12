@@ -4,6 +4,8 @@ import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 import { getSetupReadiness } from "@/server/services/setup-service";
 
 const authErrorMessages: Record<string, string> = {
+  Callback:
+    "The Google callback reached the app, but the server failed while turning that response into a host session.",
   OAuthCallback:
     "Google sign-in reached the callback step but the server could not complete the session. This is usually a database or callback configuration problem.",
   AccessDenied:
