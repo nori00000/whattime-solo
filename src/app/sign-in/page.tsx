@@ -3,8 +3,32 @@ import Link from "next/link";
 import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 import { getSetupReadiness } from "@/server/services/setup-service";
 
-export default function SignInPage() {
+const authErrorMessages: Record<string, string> = {
+  OAuthCallback:
+    "Google sign-in reached the callback step but the server could not complete the session. This is usually a database or callback configuration problem.",
+  AccessDenied:
+    "Google sign-in was denied. Check the Google OAuth consent screen and allowed test users.",
+  Configuration:
+    "Auth.js configuration is incomplete for this environment.",
+  Verification:
+    "The sign-in response could not be verified.",
+  Default:
+    "Google sign-in failed before a host session could be created.",
+};
+
+type SignInPageProps = {
+  searchParams?: Promise<{
+    error?: string;
+  }>;
+};
+
+export default async function SignInPage({ searchParams }: SignInPageProps) {
   const readiness = getSetupReadiness();
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const errorCode = resolvedSearchParams?.error;
+  const errorMessage = errorCode
+    ? authErrorMessages[errorCode] ?? authErrorMessages.Default
+    : null;
   const missingAuthKeys = readiness.env
     .filter(
       (item) =>
@@ -44,6 +68,14 @@ export default function SignInPage() {
             </span>
           </div>
         )}
+
+        {errorCode ? (
+          <div className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 p-5 text-sm leading-7 text-rose-900">
+            <span className="font-semibold">Sign-in error: {errorCode}</span>
+            <br />
+            {errorMessage}
+          </div>
+        ) : null}
 
         <div className="mt-8 flex flex-wrap gap-3">
           <GoogleSignInButton />
