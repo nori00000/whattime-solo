@@ -1,0 +1,190 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum CalendarProvider {
+  GOOGLE
+}
+
+enum UserRole {
+  PLATFORM_ADMIN
+  HOST
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELED
+  FAILED
+}
+
+model User {
+  id          String      @id @default(cuid())
+  email       String      @unique
+  name        String?
+  image       String?
+  timezone    String      @default("Asia/Seoul")
+  role        UserRole    @default(HOST)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  calendarAccounts   CalendarAccount[]
+  connectedCalendars ConnectedCalendar[]
+  eventTypes         EventType[]
+  bookings           Booking[]
+  auditLogs          AuditLog[]
+}
+
+model CalendarAccount {
+  id                String           @id @default(cuid())
+  userId            String
+  provider          CalendarProvider
+  providerAccountId String
+  email             String?
+  accessTokenEnc    String
+  refreshTokenEnc   String?
+  scope             String?
+  expiresAt         DateTime?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  calendars         ConnectedCalendar[]
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model ConnectedCalendar {
+  id                   String          @id @default(cuid())
+  userId               String
+  calendarAccountId    String
+  externalCalendarId   String
+  summary              String
+  isPrimary            Boolean         @default(false)
+  selectedForBusyCheck Boolean         @default(true)
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+
+  user                 User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  calendarAccount      CalendarAccount @relation(fields: [calendarAccountId], references: [id], onDelete: Cascade)
+
+  @@unique([calendarAccountId, externalCalendarId])
+  @@index([userId])
+}
+
+model EventType {
+  id                     String                     @id @default(cuid())
+  userId                 String
+  slug                   String                     @unique
+  title                  String
+  description            String?
+  durationMinutes        Int
+  bufferBeforeMinutes    Int                        @default(0)
+  bufferAfterMinutes     Int                        @default(0)
+  bookingWindowStartDays Int                        @default(0)
+  bookingWindowEndDays   Int                        @default(30)
+  minimumNoticeMinutes   Int                        @default(60)
+  slotIntervalMinutes    Int                        @default(30)
+  isActive               Boolean                    @default(true)
+  createdAt              DateTime                   @default(now())
+  updatedAt              DateTime                   @updatedAt
+
+  user                   User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  availabilityRules      AvailabilityRule[]
+  dateOverrides          AvailabilityDateOverride[]
+  bookings               Booking[]
+  bookingLocks           BookingLock[]
+
+  @@index([userId])
+  @@index([userId, isActive])
+}
+
+model AvailabilityRule {
+  id          String    @id @default(cuid())
+  eventTypeId String
+  dayOfWeek   Int
+  startMinute Int
+  endMinute   Int
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+
+  @@index([eventTypeId, dayOfWeek])
+}
+
+model AvailabilityDateOverride {
+  id            String    @id @default(cuid())
+  eventTypeId   String
+  date          DateTime
+  isUnavailable Boolean   @default(false)
+  startMinute   Int?
+  endMinute     Int?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  eventType     EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+
+  @@index([eventTypeId, date])
+}
+
+model Booking {
+  id              String        @id @default(cuid())
+  userId          String
+  eventTypeId     String
+  inviteeName     String
+  inviteeEmail    String
+  inviteeTimezone String
+  note            String?
+  startAtUtc      DateTime
+  endAtUtc        DateTime
+  status          BookingStatus @default(CONFIRMED)
+  externalEventId String?
+  cancelToken     String        @unique
+  canceledAt      DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventType       EventType     @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([eventTypeId, startAtUtc])
+  @@index([inviteeEmail])
+}
+
+model BookingLock {
+  id             String    @id @default(cuid())
+  eventTypeId    String
+  slotStartAtUtc DateTime
+  slotEndAtUtc   DateTime
+  expiresAt      DateTime
+  createdAt      DateTime  @default(now())
+
+  eventType      EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+
+  @@index([eventTypeId, slotStartAtUtc])
+  @@index([expiresAt])
+}
+
+model AuditLog {
+  id          String    @id @default(cuid())
+  userId      String?
+  actorRole   String
+  action      String
+  targetType  String?
+  targetId    String?
+  payloadJson Json?
+  createdAt   DateTime  @default(now())
+
+  user        User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}
