@@ -2,6 +2,10 @@
 
 Personal scheduling service for a single host. The product reads Google Calendar availability, exposes a public booking page, and creates a Google Calendar event when an invitee reserves a slot.
 
+This is an independent project. Third-party product names and service names in
+this repository are used only to describe integrations; see [NOTICE.md](./NOTICE.md)
+for trademark and asset notes.
+
 ## Current State
 
 The MVP is working locally end to end:
