@@ -2,6 +2,14 @@
 
 Personal scheduling service for a single host. The product reads Google Calendar availability, exposes a public booking page, and creates a Google Calendar event when an invitee reserves a slot.
 
+> **한눈에 / At a glance**
+>
+> Google Calendar availability, public booking links, and cancellation flows for a
+> solo operator.
+>
+> 한영 프로젝트 설명, 검색 키워드, 저작권 범위는 [PROJECT.md](./PROJECT.md)와
+> [NOTICE.md](./NOTICE.md)를 먼저 확인하세요.
+
 This is an independent project. Third-party product names and service names in
 this repository are used only to describe integrations; see [NOTICE.md](./NOTICE.md)
 for trademark and asset notes.
