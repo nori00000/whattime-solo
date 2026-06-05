@@ -36,16 +36,18 @@ Required:
 
 - `DATABASE_URL`
 - `NEXTAUTH_SECRET`
-- `NEXTAUTH_URL=https://meet.sociai.org`
 - `GOOGLE_CLIENT_ID`
 - `GOOGLE_CLIENT_SECRET`
 - `GOOGLE_ENCRYPTION_KEY`
-- `APP_TIMEZONE=Asia/Seoul`
-
-Optional for mail:
-
 - `RESEND_API_KEY`
 - `MAIL_FROM`
+
+Optional (with defaults):
+
+- `NEXTAUTH_URL=https://meet.sociai.org` (optional in `src/lib/config/env.ts`; recommended to set explicitly in production)
+- `APP_TIMEZONE=Asia/Seoul` (optional; defaults to `Asia/Seoul` if unset)
+
+Note: `RESEND_API_KEY` and `MAIL_FROM` are validated as required by `src/lib/config/env.ts`. Even though email delivery is not yet fully implemented, these variables must be present for the app to start. Set them to real values before deploying.
 
 ## Google OAuth Production Settings
 

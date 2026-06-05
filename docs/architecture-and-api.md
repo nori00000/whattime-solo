@@ -9,7 +9,7 @@ High-level shape:
 - Next.js App Router for UI and HTTP handlers
 - PostgreSQL for durable state
 - Prisma for persistence
-- Auth.js for host authentication
+- NextAuth.js (next-auth v4) for host authentication
 - Google Calendar API adapter for external calendar interactions
 - Email provider adapter for notifications
 
@@ -22,55 +22,100 @@ High-level shape:
 - Prefer synchronous booking confirmation for MVP so state transitions stay easier to reason about.
 - Enforce authorization at route, service, and query boundaries.
 
-## Proposed Directory Structure
+## Actual Directory Structure
 
 ```txt
 src/
   app/
-    (app)/
-      dashboard/
-      event-types/
-      bookings/
-      settings/
-    (public)/
-      [slug]/
-      cancel/[token]/
+    [slug]/                    (public booking page)
     api/
-      calendars/
-      event-types/
-      public/
+      auth/[...nextauth]/
       bookings/
+        [id]/cancel/
+      calendars/
+        [id]/
+      event-types/
+        [id]/
+      public/
+        [slug]/
+          book/
+          slots/
+        cancel/[token]/
+      setup/
+        diagnostics/
+        readiness/
+    bookings/                   (list page)
+      [id]/
+    cancel/[token]/
+    dashboard/
+    event-types/               (list page)
+      [id]/edit/
+      new/
+    settings/
+      calendars/
+      setup/
+    sign-in/
   components/
+    auth/
     booking/
+    bookings/
     event-types/
-    layout/
-    ui/
+    settings/
   lib/
     auth/
+      options.ts
+      public-context.ts
+      server-session.ts
+      session.ts
     availability/
+      engine.ts
+      engine.test.ts
+      types.ts
+    config/
+      app-config.ts
+      env.ts
+      env.test.ts
     db/
-    email/
-    google/
-    validation/
+      prisma.ts
+    domain/
+      error-codes.ts
+    security/
+      encryption.ts
     utils/
+      slug.ts
+      slug.test.ts
+    validation/
+      booking.ts
+      booking.test.ts
+      event-type.ts
+      event-type.test.ts
+      public-slots.ts
   server/
     authz/
+      index.ts
       policies.ts
       roles.ts
     services/
+      auth-persistence-service.ts
       availability-service.ts
       booking-service.ts
+      booking-service.test.ts
       calendar-service.ts
       event-type-service.ts
-      audit-service.ts
+      host-booking-service.ts
+      setup-service.ts
+    test-support/
+      booking-fixtures.ts
+  types/
+    next-auth.d.ts
 prisma/
+  migrations/
   schema.prisma
-tests/
-  unit/
-  integration/
-  e2e/
+prisma.config.ts
 docs/
 ```
+
+Note: Route groups `(app)/` and `(public)/` were not used. All host and public routes are flat under `src/app/`. Tests are co-located alongside source files as `*.test.ts` rather than in a separate `tests/` directory.
 
 ## RBAC Architecture
 
@@ -241,6 +286,22 @@ All provider-specific behavior belongs here, not in route handlers.
 - short-lived reservation guard
 - cleanup can be lazy through expiration checks
 
+### Booking Status
+
+Booking lifecycle is represented by status values rather than deletion:
+
+- `CONFIRMED` — slot successfully reserved and external event created
+- `CANCELED` — canceled by host or invitee token
+- `PENDING` — reserved for internal use if a pre-confirmation state is needed
+- `FAILED` — confirmation did not complete successfully
+
+### AuditLog
+
+- append-only record of security-relevant and operational events
+- captures actor role, action type, target resource, and optional JSON payload
+- used for authorization failure logging, cancellation tracking, and future admin audit trail
+- see [RBAC guide](./rbac-guide.md) for the protected resource classification
+
 ## API Conventions
 
 - JSON request and response
@@ -262,15 +323,17 @@ Auth:
 
 - required role: `host`
 
-### `POST /api/calendars/sync`
+### `POST /api/calendars`
 
 Purpose:
 
-- refresh stored calendar list from Google
+- refresh stored calendar list from Google (sync)
 
 Auth:
 
 - required role: `host`
+
+Note: Calendar sync is handled by `POST /api/calendars`, not a separate `/sync` sub-route.
 
 ### `PATCH /api/calendars/:id`
 
@@ -322,6 +385,8 @@ Auth:
 
 - required role: `host`
 
+Note: Not yet implemented. Date override management is deferred to a later milestone.
+
 ### `GET /api/public/:slug`
 
 Purpose:
@@ -372,6 +437,8 @@ Auth:
 
 - required role: `host`
 
+Note: Not yet implemented as a JSON API route. Booking detail is currently served server-side by the `src/app/bookings/[id]/page.tsx` page component. Only the `POST /api/bookings/:id/cancel` sub-route exists.
+
 ### `POST /api/bookings/:id/cancel`
 
 Purpose:
@@ -382,6 +449,16 @@ Auth:
 
 - required role: `host`
 
+### `GET /api/public/cancel/:token`
+
+Purpose:
+
+- fetch booking detail for the cancellation confirmation page before cancellation is submitted
+
+Auth:
+
+- token-scoped `invitee` authority
+
 ### `POST /api/public/cancel/:token`
 
 Purpose:
@@ -391,6 +468,26 @@ Purpose:
 Auth:
 
 - token-scoped `invitee` authority
+
+### `GET /api/setup/readiness`
+
+Purpose:
+
+- return environment variable readiness state for the setup page
+
+Auth:
+
+- host session required
+
+### `GET /api/setup/diagnostics`
+
+Purpose:
+
+- return diagnostic information for the setup page
+
+Auth:
+
+- host session required
 
 ## Scheduling Engine Specification
 

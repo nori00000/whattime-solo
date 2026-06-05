@@ -14,7 +14,7 @@ The local MVP works end to end. Planning documents remain the source of truth fo
 - installed core packages for Prisma, Auth.js, Zod, date handling, and Vitest
 - Prisma client singleton and auth/session scaffolding
 - Prisma 7 config moved to `prisma.config.ts`
-- Auth.js route and Google provider configuration scaffolded
+- NextAuth.js route and Google provider configuration scaffolded
 - host-only dashboard stub and server-session guard added
 - sign-in now persists host and encrypted Google account credentials in Prisma
 - protected calendar APIs added for list, sync, and busy-check selection
@@ -41,6 +41,17 @@ The local MVP works end to end. Planning documents remain the source of truth fo
   - 15-minute buffer after
   - 120-minute minimum notice
   - 14-day booking window
+
+> **Known config discrepancy (reconcile before production):**
+> `src/components/event-types/event-type-form.tsx` defaults `minimumNoticeMinutes` to `120`
+> (user-editable form field) and hardcodes `bookingWindowEndDays: 14` directly in the submission
+> payload (not exposed in the form UI). Both match the operational recommendation. However,
+> `src/lib/config/app-config.ts` (`defaultMinimumNoticeMinutes=60`, `defaultBookingWindowEndDays=30`),
+> the Zod schema in `src/lib/validation/event-type.ts` (`.default(60)`, `.default(30)`), and
+> `prisma/schema.prisma` (`@default(60)`, `@default(30)`) all use different values.
+> Direct API calls that omit these fields will receive the schema defaults (60 min / 30 days),
+> not the form defaults (120 min / 14 days). See also: `docs/operations.md`
+> "Recommended Default Scheduling Policy" note.
 
 ## What Has Not Started
 

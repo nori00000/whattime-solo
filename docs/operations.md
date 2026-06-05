@@ -55,6 +55,8 @@ Recommended production topology:
 
 ## Required Secrets
 
+Required (no default; app will not start without these):
+
 - `DATABASE_URL`
 - `NEXTAUTH_SECRET`
 - `GOOGLE_CLIENT_ID`
@@ -62,6 +64,11 @@ Recommended production topology:
 - `GOOGLE_ENCRYPTION_KEY`
 - `RESEND_API_KEY`
 - `MAIL_FROM`
+
+Optional (with defaults):
+
+- `NEXTAUTH_URL` (optional in `src/lib/config/env.ts`; set explicitly in production to `https://meet.sociai.org`)
+- `APP_TIMEZONE` (defaults to `Asia/Seoul`; override for non-KST production deployments)
 
 ## Secret Handling Rules
 
@@ -256,6 +263,8 @@ For solo-host operation, use these defaults unless a specific event type needs s
 - slot interval: 30 minutes
 
 This balances calendar density with enough space to avoid stacked bookings and rushed transitions.
+
+Note: `src/lib/config/app-config.ts` currently has `defaultMinimumNoticeMinutes=60` and `defaultBookingWindowEndDays=30`, which differ from the operational recommendation above. The Zod schema in `src/lib/validation/event-type.ts` and the Prisma schema (`prisma/schema.prisma`) also default to the same mismatched values (60 min / 30 days). The event type creation form in `src/components/event-types/event-type-form.tsx` defaults `minimumNoticeMinutes` to `120` (user-editable form field) and hardcodes `bookingWindowEndDays: 14` directly in the submission payload (not exposed in the form UI), both bypassing the config and schema defaults. Reconcile `app-config.ts`, `src/lib/validation/event-type.ts`, `prisma/schema.prisma`, and the form defaults before production to avoid confusion.
 
 ## Manual Runbooks
 

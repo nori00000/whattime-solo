@@ -51,8 +51,15 @@ Out of scope:
 
 ## Current Focus
 
-The planning artifacts are complete. Current implementation focus is:
+The planning artifacts and local MVP implementation are complete. Current focus is:
 
-1. Prisma-backed user and account persistence
-2. Google calendar sync and busy-check selection
-3. host-side route protection and ownership enforcement
+1. Production deployment to `meet.sociai.org`
+2. Production Google OAuth callback registration
+3. Production database migration
+4. Sociai CTA placement linking to the public booking page
+
+Remaining implementation gaps before deployment:
+
+- confirmation and cancellation email delivery
+- richer host-side availability editor
+- broader integration tests for route handlers
