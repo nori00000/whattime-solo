@@ -165,9 +165,12 @@ Examples:
 - `/event-types`
 - `/bookings`
 - `/settings`
+- `/settings/calendars`
+- `/settings/setup`
 - `/api/calendars/*`
 - `/api/event-types/*`
 - `/api/bookings/*`
+- `/api/setup/*`
 
 Policy:
 

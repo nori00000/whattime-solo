@@ -50,6 +50,8 @@ Run the dev server:
 npm run dev
 ```
 
+The dev server starts on port **3002** (`http://localhost:3002`).
+
 ## Working Order
 
 1. Lock planning documents.

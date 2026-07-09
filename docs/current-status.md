@@ -26,7 +26,7 @@ The local MVP works end to end. Planning documents remain the source of truth fo
 - host-side event type creation page and form added
 - event type list/edit pages added
 - booking service dependency-injection refactor and tests added
-- setup readiness page/API added
+- setup readiness and diagnostics page/API added
 - host cancel now attempts Google Calendar event deletion too
 - project-local PostgreSQL server initialized on port `5433`
 - local `.env` and `.env.local` prepared with working database configuration
@@ -56,6 +56,8 @@ The local MVP works end to end. Planning documents remain the source of truth fo
 ## What Has Not Started
 
 - confirmation email and cancellation email delivery
+- date override API endpoint (`POST /api/event-types/:id/overrides`) — deferred per architecture plan
+- authorization guard tests across host/public/token boundaries (`src/server/authz/policies.ts` has no accompanying `*.test.ts`; see `docs/rbac-guide.md` Testing Requirements and `docs/current-plan.md` Work Sequence step 10)
 - richer host-side availability editor
 - production deployment on `meet.sociai.org`
 - Sociai outbound CTA placement

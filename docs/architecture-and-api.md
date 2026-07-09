@@ -27,17 +27,19 @@ High-level shape:
 ```txt
 src/
   app/
+    layout.tsx                 (root Next.js layout)
+    page.tsx                   (home page — links to host dashboard and docs)
     [slug]/                    (public booking page)
     api/
       auth/[...nextauth]/
-      bookings/
+      bookings/               (GET /api/bookings list)
         [id]/cancel/
       calendars/
         [id]/
       event-types/
         [id]/
       public/
-        [slug]/
+        [slug]/               (GET /api/public/:slug — public event type lookup)
           book/
           slots/
         cancel/[token]/

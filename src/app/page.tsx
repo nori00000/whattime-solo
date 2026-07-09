@@ -22,6 +22,21 @@ const planningDocs = [
     label: "Operations Guide",
     summary: "Runbooks, release checklist, and operator-friendly recovery paths.",
   },
+  {
+    path: "docs/current-status.md",
+    label: "Current Status",
+    summary: "What is implemented, what has not started, and known gaps.",
+  },
+  {
+    path: "docs/current-plan.md",
+    label: "Current Plan",
+    summary: "Work sequence, quality gates, and current deployment focus.",
+  },
+  {
+    path: "docs/deployment-and-sociai.md",
+    label: "Deployment Guide",
+    summary: "Vercel + Neon topology, production checklist, and Sociai CTA integration.",
+  },
 ];
 
 export default function Home() {
@@ -31,16 +46,19 @@ export default function Home() {
         <section className="grid gap-8 rounded-[2rem] bg-white p-8 shadow-[0_20px_80px_rgba(28,25,23,0.08)] sm:p-12">
           <div className="space-y-4">
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-amber-700">
-              Planning Baseline
+              Local MVP
             </p>
             <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-stone-950 sm:text-5xl">
-              WhatTime Solo is set up as a planning-first scheduling app.
+              WhatTime Solo is working end to end locally.
             </h1>
             <p className="max-w-3xl text-lg leading-8 text-stone-600">
-              The next implementation milestone is foundation work only:
-              database schema, role and ownership guards, environment contract,
-              and project structure. Product logic starts after those pieces are
-              locked.
+              Google sign-in, calendar sync, event type CRUD, public slot
+              lookup, booking confirmation, and host/invitee cancellation are
+              all implemented. Next step is production deployment on{" "}
+              <span className="font-medium text-stone-800">
+                meet.sociai.org
+              </span>
+              .
             </p>
           </div>
 
@@ -52,7 +70,7 @@ export default function Home() {
               href="/dashboard"
               className="rounded-full border border-stone-300 px-5 py-3 font-medium text-stone-700 transition hover:border-stone-400 hover:bg-stone-50"
             >
-              Host dashboard scaffold
+              Host dashboard
             </Link>
           </div>
         </section>
