@@ -81,6 +81,14 @@ The local MVP works end to end. Planning documents remain the source of truth fo
 - email delivery is still missing
 - the host-side availability editor is still intentionally narrow
 - the current local database is not a production persistence layer
+- `src/lib/availability/engine.ts` (`buildWorkingIntervalsForDate`) derives working
+  hours from the host process's system timezone via naive `date-fns`
+  (`startOfDay`/`set`), not from the `APP_TIMEZONE` env var — `APP_TIMEZONE` is
+  declared in `src/lib/config/env.ts` but not read anywhere. Discovered when CI
+  (GitHub runners default to UTC) diverged from local dev (Asia/Seoul); CI is
+  pinned to `TZ=Asia/Seoul` as a stopgap (see `.github/workflows/ci.yml`). The
+  production host must also run with `TZ=Asia/Seoul` (or the engine must be
+  made explicitly timezone-aware) before non-KST deployment is safe.
 
 ## Next Action
 

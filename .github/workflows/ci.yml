@@ -14,6 +14,11 @@ jobs:
       # `prisma generate` and `next build`'s type check). No real database is
       # used in CI; this placeholder only satisfies config loading.
       DATABASE_URL: postgresql://user:password@localhost:5433/whattime_solo_ci
+      # src/lib/availability/engine.ts builds working hours from the *process*
+      # system timezone (date-fns startOfDay/set), not from APP_TIMEZONE - see
+      # docs/current-status.md "Risks". Pin CI to the app's documented default
+      # (Asia/Seoul) so results match local dev instead of the GitHub runner's UTC.
+      TZ: Asia/Seoul
     steps:
       - uses: actions/checkout@v4
 
