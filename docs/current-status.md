@@ -57,7 +57,6 @@ The local MVP works end to end. Planning documents remain the source of truth fo
 
 - confirmation email and cancellation email delivery
 - date override API endpoint (`POST /api/event-types/:id/overrides`) — deferred per architecture plan
-- authorization guard tests across host/public/token boundaries (`src/server/authz/policies.ts` has no accompanying `*.test.ts`; see `docs/rbac-guide.md` Testing Requirements and `docs/current-plan.md` Work Sequence step 10)
 - richer host-side availability editor
 - production deployment on `meet.sociai.org`
 - Sociai outbound CTA placement
@@ -66,7 +65,9 @@ The local MVP works end to end. Planning documents remain the source of truth fo
 ## Verification
 
 - `npm run lint` passes
-- `npm test` passes
+- `npx tsc --noEmit` passes
+- `npm test` passes (`src/server/authz/policies.test.ts` covers host/admin/invitee access boundaries)
+- CI (`.github/workflows/ci.yml`) runs lint, type check, test, and build on every push/PR to `main`
 - `npm run db:generate` passes
 - `npm run db:migrate:dev -- --name init` applied successfully against the local PostgreSQL database
 - `npm run build` passes

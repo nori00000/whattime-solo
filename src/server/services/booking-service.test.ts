@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { AppError, ERROR_CODES } from "../../lib/domain/error-codes";
+import { ERROR_CODES } from "../../lib/domain/error-codes";
 import { createBookingService } from "./booking-service";
 
 function makeDeps() {
@@ -49,7 +49,7 @@ describe("booking service", () => {
         inviteeName: "Kim",
         inviteeEmail: "kim@example.com",
       }),
-    ).rejects.toMatchObject<AppError>({
+    ).rejects.toMatchObject({
       code: ERROR_CODES.SLOT_UNAVAILABLE,
       status: 409,
     });
@@ -141,7 +141,7 @@ describe("booking service", () => {
         inviteeName: "Kim",
         inviteeEmail: "kim@example.com",
       }),
-    ).rejects.toMatchObject<AppError>({
+    ).rejects.toMatchObject({
       code: ERROR_CODES.BOOKING_LOCK_FAILED,
       status: 409,
     });
@@ -158,7 +158,7 @@ describe("booking service", () => {
 
     await expect(
       service.cancelBookingByToken({ token: "missing" }),
-    ).rejects.toMatchObject<AppError>({
+    ).rejects.toMatchObject({
       code: ERROR_CODES.NOT_FOUND,
       status: 404,
     });

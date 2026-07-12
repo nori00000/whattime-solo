@@ -44,6 +44,13 @@ Install dependencies:
 npm install
 ```
 
+Generate the Prisma client (required once after install or after any schema
+change; `next build` and the test suite both import the generated client):
+
+```bash
+npm run db:generate
+```
+
 Run the dev server:
 
 ```bash
@@ -51,6 +58,18 @@ npm run dev
 ```
 
 The dev server starts on port **3002** (`http://localhost:3002`).
+
+### Quality checks
+
+```bash
+npm run lint    # ESLint
+npx tsc --noEmit  # type check
+npm test        # vitest
+npm run build   # production build (also type-checks)
+```
+
+CI runs all four on every push and pull request to `main`
+(see [`.github/workflows/ci.yml`](./.github/workflows/ci.yml)).
 
 ## Working Order
 
