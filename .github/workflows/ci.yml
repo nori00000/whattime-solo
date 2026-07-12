@@ -9,6 +9,11 @@ on:
 jobs:
   build-test-lint:
     runs-on: ubuntu-latest
+    env:
+      # prisma.config.ts reads DATABASE_URL eagerly at load time (needed by
+      # `prisma generate` and `next build`'s type check). No real database is
+      # used in CI; this placeholder only satisfies config loading.
+      DATABASE_URL: postgresql://user:password@localhost:5433/whattime_solo_ci
     steps:
       - uses: actions/checkout@v4
 
