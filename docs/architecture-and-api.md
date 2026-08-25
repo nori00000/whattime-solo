@@ -96,6 +96,7 @@ src/
     authz/
       index.ts
       policies.ts
+      policies.test.ts
       roles.ts
     services/
       auth-persistence-service.ts
@@ -304,6 +305,11 @@ Booking lifecycle is represented by status values rather than deletion:
 - used for authorization failure logging, cancellation tracking, and future admin audit trail
 - see [RBAC guide](./rbac-guide.md) for the protected resource classification
 
+Note (DOC-SYNC 2026-08-15): The `AuditLog` Prisma model and migration exist, but
+no service or route in `src/` currently writes to it — authorization failures,
+cancellations, and other security-relevant events described above are not yet
+logged there. See `docs/current-status.md` Risks.
+
 ## API Conventions
 
 - JSON request and response
@@ -312,6 +318,11 @@ Booking lifecycle is represented by status values rather than deletion:
 - protected host routes under authenticated API handlers
 - public booking routes strictly rate-limited
 - public responses should reveal only fields required by the booking experience
+
+Note (DOC-SYNC 2026-08-15): "public booking routes strictly rate-limited" above is
+a design requirement, not yet implemented. No rate-limiting middleware, library,
+or per-route throttling exists in `src/` (no `middleware.ts`, no rate-limit
+dependency). See `docs/current-status.md` Risks.
 
 ## API Endpoints
 
@@ -479,7 +490,13 @@ Purpose:
 
 Auth:
 
-- host session required
+- none enforced in the route handler
+
+Note (DOC-SYNC 2026-08-08): This route and `getSetupReadiness()` in
+`src/server/services/setup-service.ts` perform no session check, unlike other
+host routes (e.g. `/api/calendars`, `/api/event-types`), which call
+`getServerAuthSession()` + `assertHostSession()`. Anyone can currently call
+this endpoint. See `docs/current-status.md` Risks.
 
 ### `GET /api/setup/diagnostics`
 
@@ -489,7 +506,12 @@ Purpose:
 
 Auth:
 
-- host session required
+- none enforced in the route handler
+
+Note (DOC-SYNC 2026-08-08): Same gap as `GET /api/setup/readiness` — no
+session check in the route or in `getSetupDiagnostics()`. This endpoint also
+runs live database queries and exercises the encryption helper. See
+`docs/current-status.md` Risks.
 
 ## Scheduling Engine Specification
 

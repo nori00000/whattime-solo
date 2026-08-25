@@ -177,6 +177,11 @@ Policy:
 - require authenticated host session
 - scope all data access by owner
 
+Note (DOC-SYNC 2026-08-08): `/api/setup/readiness` and `/api/setup/diagnostics`
+are classified here by design, but the route handlers currently have no
+session check — see `docs/architecture-and-api.md` API Endpoints and
+`docs/current-status.md` Risks.
+
 ### Public Routes
 
 Examples:
@@ -194,6 +199,10 @@ Policy:
 - restrict output shape
 - enforce rate limiting
 - never infer host authority from public input
+
+Note (DOC-SYNC 2026-08-15): rate limiting is not yet implemented for these routes
+— see `docs/architecture-and-api.md` API Conventions and `docs/current-status.md`
+Risks.
 
 ### Future Admin Routes
 
@@ -232,6 +241,11 @@ Policy:
 - log denied access attempts
 - log token-based cancellations
 - log admin actions distinctly if admin role is activated later
+
+Note (DOC-SYNC 2026-08-15): none of this is implemented yet — the `AuditLog` table
+exists in `prisma/schema.prisma` but nothing in `src/` writes to it. See
+`docs/architecture-and-api.md` Data Model Notes and `docs/current-status.md`
+Risks.
 
 ## Caller Context Model
 

@@ -89,6 +89,24 @@ The local MVP works end to end. Planning documents remain the source of truth fo
   pinned to `TZ=Asia/Seoul` as a stopgap (see `.github/workflows/ci.yml`). The
   production host must also run with `TZ=Asia/Seoul` (or the engine must be
   made explicitly timezone-aware) before non-KST deployment is safe.
+- `GET /api/setup/readiness` and `GET /api/setup/diagnostics` are documented
+  in `docs/architecture-and-api.md` and `docs/rbac-guide.md` as host routes
+  requiring an authenticated session, but the route handlers (and the
+  underlying `src/server/services/setup-service.ts` functions) perform no
+  session check — unlike other host routes, which call
+  `getServerAuthSession()` + `assertHostSession()`. Both endpoints are
+  currently reachable by anyone; `/api/setup/diagnostics` also runs live
+  database queries and exercises the encryption helper. Verified 2026-08-08;
+  add the same session guard used elsewhere before production.
+- `docs/architecture-and-api.md` and `docs/rbac-guide.md` describe public routes as
+  "strictly rate-limited" / requiring rate limiting, but no rate-limiting
+  implementation exists anywhere in `src/` (no `middleware.ts`, no rate-limit
+  dependency in `package.json`). Public routes are currently unthrottled.
+  Verified 2026-08-15.
+- The `AuditLog` Prisma model (and its migration) exist, but no service or route
+  in `src/` writes to it. `docs/rbac-guide.md` ("Audit Layer") and
+  `docs/operations.md` ("Data Retention Guidance") describe audit logging as an
+  operational requirement, but it is currently schema-only. Verified 2026-08-15.
 
 ## Next Action
 
