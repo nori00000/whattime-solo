@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { AppError, ERROR_CODES } from "@/lib/domain/error-codes";
 import { cancelBookingSchema } from "@/lib/validation/booking";
+import { getClientIp, publicWriteRateLimiter } from "@/lib/security/rate-limit";
 import { cancelBookingByToken, getBookingByToken } from "@/server/services/booking-service";
 
 type Params = {
@@ -51,6 +52,21 @@ export async function GET(_: Request, { params }: Params) {
 }
 
 export async function POST(request: Request, { params }: Params) {
+  const rate = publicWriteRateLimiter.check(getClientIp(request));
+  if (!rate.allowed) {
+    return NextResponse.json(
+      {
+        ok: false,
+        code: ERROR_CODES.RATE_LIMITED,
+        message: "Too many requests. Please try again shortly.",
+      },
+      {
+        status: 429,
+        headers: { "Retry-After": String(Math.ceil(rate.retryAfterMs / 1000)) },
+      },
+    );
+  }
+
   try {
     const resolvedParams = await params;
     const body = await request.json().catch(() => ({}));

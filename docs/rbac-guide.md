@@ -181,6 +181,8 @@ Note (DOC-SYNC 2026-08-08): `/api/setup/readiness` and `/api/setup/diagnostics`
 are classified here by design, but the route handlers currently have no
 session check — see `docs/architecture-and-api.md` API Endpoints and
 `docs/current-status.md` Risks.
+RESOLVED 2026-08-25: both route handlers now enforce the host-session guard
+(401 `UNAUTHORIZED` otherwise), matching this classification.
 
 ### Public Routes
 
@@ -203,6 +205,11 @@ Policy:
 Note (DOC-SYNC 2026-08-15): rate limiting is not yet implemented for these routes
 — see `docs/architecture-and-api.md` API Conventions and `docs/current-status.md`
 Risks.
+RESOLVED 2026-08-25: the public write routes (`/api/public/:slug/book`,
+`/api/public/cancel/:token` POST) now enforce an in-memory sliding-window limit
+(10 req/min per client IP → 429 `RATE_LIMITED`) via `src/lib/security/rate-limit.ts`.
+The read-only public GET routes remain unthrottled; add them here if abuse is
+observed at redeploy.
 
 ### Future Admin Routes
 

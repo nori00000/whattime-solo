@@ -98,15 +98,28 @@ The local MVP works end to end. Planning documents remain the source of truth fo
   currently reachable by anyone; `/api/setup/diagnostics` also runs live
   database queries and exercises the encryption helper. Verified 2026-08-08;
   add the same session guard used elsewhere before production.
+  RESOLVED 2026-08-25: both route handlers now call `getServerAuthSession()` +
+  `assertHostSession()` and return 401 (`UNAUTHORIZED`) when unauthenticated,
+  matching `/api/calendars`. Verified live (`curl` → HTTP 401).
 - `docs/architecture-and-api.md` and `docs/rbac-guide.md` describe public routes as
   "strictly rate-limited" / requiring rate limiting, but no rate-limiting
   implementation exists anywhere in `src/` (no `middleware.ts`, no rate-limit
   dependency in `package.json`). Public routes are currently unthrottled.
   Verified 2026-08-15.
+  RESOLVED 2026-08-25: the unauthenticated public write routes
+  (`/api/public/[slug]/book`, `/api/public/cancel/[token]` POST) are now
+  throttled by a dependency-free in-memory sliding-window limiter
+  (`src/lib/security/rate-limit.ts`, 10 req/min per client IP → 429
+  `RATE_LIMITED`). Process-local by design for a single-instance self-host;
+  replace the store with a shared backend if scaled horizontally. Verified live
+  (`curl` → HTTP 429 after the 10th request).
 - The `AuditLog` Prisma model (and its migration) exist, but no service or route
   in `src/` writes to it. `docs/rbac-guide.md` ("Audit Layer") and
   `docs/operations.md` ("Data Retention Guidance") describe audit logging as an
   operational requirement, but it is currently schema-only. Verified 2026-08-15.
+  DEFERRED 2026-08-25: left schema-only intentionally — audit logging is
+  over-scope for a dormant single-instance app. Revisit (implement writes or
+  drop the model) at redeploy time.
 
 ## Next Action
 

@@ -323,6 +323,11 @@ Note (DOC-SYNC 2026-08-15): "public booking routes strictly rate-limited" above 
 a design requirement, not yet implemented. No rate-limiting middleware, library,
 or per-route throttling exists in `src/` (no `middleware.ts`, no rate-limit
 dependency). See `docs/current-status.md` Risks.
+RESOLVED 2026-08-25: implemented per-route throttling (no new dependency) via
+`src/lib/security/rate-limit.ts` — a process-local in-memory sliding window
+(10 req/min per client IP) applied to the unauthenticated public write routes
+`POST /api/public/[slug]/book` and `POST /api/public/cancel/[token]`, returning
+429 `RATE_LIMITED`. See `docs/current-status.md` Risks.
 
 ## API Endpoints
 
@@ -490,13 +495,17 @@ Purpose:
 
 Auth:
 
-- none enforced in the route handler
+- host session required (`getServerAuthSession()` + `assertHostSession()`); 401 `UNAUTHORIZED` otherwise
 
 Note (DOC-SYNC 2026-08-08): This route and `getSetupReadiness()` in
 `src/server/services/setup-service.ts` perform no session check, unlike other
 host routes (e.g. `/api/calendars`, `/api/event-types`), which call
 `getServerAuthSession()` + `assertHostSession()`. Anyone can currently call
 this endpoint. See `docs/current-status.md` Risks.
+RESOLVED 2026-08-25: the route handler now enforces the host-session guard
+(the `setup-service.ts` functions are unchanged; the guard lives in the route,
+matching `/api/calendars`). The setup/sign-in server pages call the service
+directly and are unaffected.
 
 ### `GET /api/setup/diagnostics`
 
@@ -506,12 +515,14 @@ Purpose:
 
 Auth:
 
-- none enforced in the route handler
+- host session required (`getServerAuthSession()` + `assertHostSession()`); 401 `UNAUTHORIZED` otherwise
 
 Note (DOC-SYNC 2026-08-08): Same gap as `GET /api/setup/readiness` — no
 session check in the route or in `getSetupDiagnostics()`. This endpoint also
 runs live database queries and exercises the encryption helper. See
 `docs/current-status.md` Risks.
+RESOLVED 2026-08-25: the route handler now enforces the host-session guard
+before running any diagnostics query, matching `/api/calendars`.
 
 ## Scheduling Engine Specification
 
