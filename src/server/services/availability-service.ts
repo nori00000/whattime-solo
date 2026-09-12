@@ -91,9 +91,11 @@ export async function getPublicAvailability(input: {
       where: {
         eventTypeId: eventType.id,
         status: "CONFIRMED",
+        endAtUtc: {
+          gt: from,
+        },
         startAtUtc: {
-          gte: from,
-          lte: to,
+          lt: to,
         },
       },
       select: {
@@ -114,9 +116,11 @@ export async function getPublicAvailability(input: {
         expiresAt: {
           gt: new Date(),
         },
+        slotEndAtUtc: {
+          gt: from,
+        },
         slotStartAtUtc: {
-          gte: from,
-          lte: to,
+          lt: to,
         },
       },
       select: {
